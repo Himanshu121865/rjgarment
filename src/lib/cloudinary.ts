@@ -87,9 +87,12 @@ export async function updateCloudinaryContext(
     publicId: string,
     context: Record<string, string>,
 ): Promise<void> {
+    const existing = await cloudinary.api.resource(publicId, { context: true });
+    const existingContext = parseContext(existing) || {};
+    const merged = { ...existingContext, ...context };
     await cloudinary.uploader.explicit(publicId, {
         type: 'upload',
-        context,
+        context: merged,
     });
 }
 
