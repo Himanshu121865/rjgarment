@@ -58,10 +58,10 @@ export function BrutalHero({ title }: { title: string }) {
           <PixelSnow
             color="#ff4800"
             flakeSize={0.03}
-            minFlakeSize={1.5}
+            minFlakeSize={0.5}
             pixelResolution={100}
             speed={0.8}
-            density={0.07}
+            density={0.02}
             direction={135}
             brightness={0.6}
             variant="square"
