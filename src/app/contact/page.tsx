@@ -8,14 +8,14 @@ const contacts = [
   {
     icon: Phone,
     label: "Phone",
-    value: "+91 98765 43210",
-    href: "tel:+9198765432100",
+    value: "+91 9953394515",
+    href: "tel:+919953394515",
   },
   {
     icon: MessageCircle,
     label: "WhatsApp",
-    value: "+91 98765 43210",
-    href: "https://wa.me/9198765432100",
+    value: "+91 9953394515",
+    href: "https://wa.me/9953394515",
   },
   {
     icon: ScanFaceIcon,
@@ -35,7 +35,7 @@ export default function ContactPage() {
   const [copied, setCopied] = useState(false);
 
   const copyPhone = () => {
-    navigator.clipboard.writeText("+9198765432100");
+    navigator.clipboard.writeText("+919953394515");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

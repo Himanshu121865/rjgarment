@@ -15,7 +15,7 @@ import {
   Check,
 } from "lucide-react";
 
-const PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+const PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "rjgarment2024";
 
 interface MediaFile {
   name: string;
