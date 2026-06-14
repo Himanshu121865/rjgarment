@@ -46,7 +46,7 @@ export function ColorRevealImg({
       />
       {item && (
         <button
-          onClick={() => toggleSave(item)}
+          onClick={(e) => { e.stopPropagation(); toggleSave(item); }}
           className="absolute top-2 right-2 z-10 border-2 border-black bg-white p-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer"
         >
           <Heart
