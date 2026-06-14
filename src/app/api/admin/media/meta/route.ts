@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readMeta, writeMeta } from "@/lib/media-meta";
+import { updateCloudinaryContext, FOLDER } from "@/lib/cloudinary";
 
 function checkAuth(request: Request): boolean {
     const pwd = request.headers.get("x-admin-password");
@@ -19,19 +19,15 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: "filename required" }, { status: 400 });
         }
 
-        const meta = await readMeta();
+        const publicId = `${FOLDER}/${filename}`;
+        const context: Record<string, string> = {};
+        if (displayName !== undefined) context.displayName = displayName;
+        if (price !== undefined) context.price = String(price);
+        if (category !== undefined) context.category = category;
 
-        if (!meta[filename]) {
-            return NextResponse.json({ error: "File not found in metadata" }, { status: 404 });
-        }
+        await updateCloudinaryContext(publicId, context);
 
-        if (displayName !== undefined) meta[filename].displayName = displayName;
-        if (price !== undefined) meta[filename].price = price;
-        if (category !== undefined) meta[filename].category = category;
-
-        await writeMeta(meta);
-
-        return NextResponse.json({ success: true, meta: meta[filename] });
+        return NextResponse.json({ success: true });
     } catch (err) {
         console.error("Meta update error:", err);
         return NextResponse.json({ error: "Update failed" }, { status: 500 });

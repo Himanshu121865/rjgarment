@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { readMeta } from "@/lib/media-meta";
 import { listCloudinaryResources, FOLDER } from "@/lib/cloudinary";
 
 function checkAuth(request: Request): boolean {
@@ -13,23 +12,20 @@ export async function GET(request: Request) {
     }
 
     try {
-        const [meta, resources] = await Promise.all([
-            readMeta(),
-            listCloudinaryResources(),
-        ]);
+        const resources = await listCloudinaryResources();
 
         const files = resources.map((r) => {
             const key = r.public_id.replace(`${FOLDER}/`, '');
-            const m = meta[key];
+            const ctx = r.context || {};
             return {
                 name: key,
                 url: r.url,
                 type: r.type,
                 size: r.size,
                 createdAt: r.createdAt,
-                displayName: m?.displayName ?? r.filename,
-                price: m?.price ?? 0,
-                category: m?.category ?? "",
+                displayName: ctx.displayName ?? r.filename,
+                price: ctx.price ? parseFloat(ctx.price) : 0,
+                category: ctx.category ?? "",
             };
         });
 

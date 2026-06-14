@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { readMeta, writeMeta } from "@/lib/media-meta";
 import { deleteCloudinaryResource, FOLDER } from "@/lib/cloudinary";
 
 function checkAuth(request: Request): boolean {
@@ -20,10 +19,6 @@ export async function DELETE(
         const publicId = `${FOLDER}/${filename}`;
 
         await deleteCloudinaryResource(publicId);
-
-        const meta = await readMeta();
-        delete meta[filename];
-        await writeMeta(meta);
 
         return NextResponse.json({ success: true });
     } catch (err) {

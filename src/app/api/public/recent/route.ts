@@ -1,21 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readMeta } from "@/lib/media-meta";
 import { listCloudinaryResources, FOLDER } from "@/lib/cloudinary";
 
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
 export async function GET(req: NextRequest) {
     try {
-        const [meta, resources] = await Promise.all([
-            readMeta(),
-            listCloudinaryResources(),
-        ]);
+        const resources = await listCloudinaryResources();
 
         const now = Date.now();
 
         const files = resources.map((r) => {
             const key = r.public_id.replace(`${FOLDER}/`, '');
-            const m = meta[key];
+            const ctx = r.context || {};
             const createdAt = r.createdAt;
             const age = now - new Date(createdAt).getTime();
             return {
@@ -24,9 +20,9 @@ export async function GET(req: NextRequest) {
                 type: r.type,
                 createdAt,
                 age,
-                displayName: m?.displayName ?? null,
-                price: m?.price ?? null,
-                category: m?.category ?? null,
+                displayName: ctx.displayName ?? null,
+                price: ctx.price ? parseFloat(ctx.price) : null,
+                category: ctx.category ?? null,
             };
         });
 

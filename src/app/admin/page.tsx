@@ -274,7 +274,10 @@ function MediaCard({
   const [price, setPrice] = useState(file.price.toString());
   const [category, setCategory] = useState(file.category);
   const [saving, setSaving] = useState(false);
-  const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const nameTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const priceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const catTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
     const saveMeta = useCallback(
         async (
@@ -283,25 +286,45 @@ function MediaCard({
             value: string | number,
         ) => {
             setSaving(true);
-            const res = await fetch("/api/admin/media/meta", {
-                method: "PUT",
-                headers: {
-                    "x-admin-password": password,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ filename: name, [field]: value }),
-            });
-            if (!res.ok) console.error("Meta save failed", await res.text());
+            setSaveError(null);
+            try {
+                const res = await fetch("/api/admin/media/meta", {
+                    method: "PUT",
+                    headers: {
+                        "x-admin-password": password,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ filename: name, [field]: value }),
+                });
+                if (!res.ok) {
+                    const errText = await res.text();
+                    setSaveError(errText || `Error ${res.status}`);
+                    console.error("Meta save failed", errText);
+                    setSaving(false);
+                    return;
+                }
+            } catch (err) {
+                setSaveError("Network error");
+                console.error(err);
+                setSaving(false);
+                return;
+            }
             setSaving(false);
             onMetaChange(name, field, value);
         },
         [password, onMetaChange],
     );
 
+    useEffect(() => {
+        setDisplayName(file.displayName);
+        setPrice(file.price.toString());
+        setCategory(file.category);
+    }, [file.displayName, file.price, file.category]);
+
   const handleNameChange = (val: string) => {
     setDisplayName(val);
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(
+    clearTimeout(nameTimer.current);
+    nameTimer.current = setTimeout(
       () => saveMeta(file.name, "displayName", val),
       600,
     );
@@ -309,8 +332,8 @@ function MediaCard({
 
   const handlePriceChange = (val: string) => {
     setPrice(val);
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(
+    clearTimeout(priceTimer.current);
+    priceTimer.current = setTimeout(
       () => saveMeta(file.name, "price", parseFloat(val) || 0),
       600,
     );
@@ -318,8 +341,8 @@ function MediaCard({
 
   const handleCategoryChange = (val: string) => {
     setCategory(val);
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(
+    clearTimeout(catTimer.current);
+    catTimer.current = setTimeout(
       () => saveMeta(file.name, "category", val),
       600,
     );
@@ -442,6 +465,11 @@ function MediaCard({
               >
                 ...
               </motion.div>
+            )}
+            {saveError && (
+              <span className="text-[9px] font-mono text-[#ff4800] uppercase flex-shrink-0 max-w-[80px] truncate" title={saveError}>
+                ERR
+              </span>
             )}
           </div>
         </div>
@@ -836,7 +864,7 @@ export default function AdminPage() {
                 files={files}
                 password={token}
                 onDelete={fetchMedia}
-                onMetaChange={fetchMedia}
+                onMetaChange={() => {}}
                 selected={selected}
                 onToggleSelect={toggleSelect}
               />

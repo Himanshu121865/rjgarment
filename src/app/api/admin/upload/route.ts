@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { readMeta, writeMeta, defaultDisplayName } from "@/lib/media-meta";
-import { uploadToCloudinary, FOLDER } from "@/lib/cloudinary";
+import { uploadToCloudinary, defaultDisplayName, FOLDER } from "@/lib/cloudinary";
 
 const ALLOWED_IMAGES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
 const ALLOWED_VIDEOS = ["video/mp4", "video/webm", "video/quicktime"];
@@ -25,7 +24,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "No files provided" }, { status: 400 });
         }
 
-        const meta = await readMeta();
         const uploaded: { name: string; url: string; type: string; size: number }[] = [];
 
         for (const file of files) {
@@ -33,14 +31,12 @@ export async function POST(request: Request) {
             if (file.size > MAX_SIZE) continue;
 
             const buffer = Buffer.from(await file.arrayBuffer());
-            const resource = await uploadToCloudinary(buffer, file.name, file.type);
-            const key = resource.public_id.replace(`${FOLDER}/`, '');
-
-            meta[key] = {
+            const resource = await uploadToCloudinary(buffer, file.name, file.type, {
                 displayName: defaultDisplayName(file.name),
                 price: 0,
                 category: "",
-            };
+            });
+            const key = resource.public_id.replace(`${FOLDER}/`, '');
 
             uploaded.push({
                 name: key,
@@ -50,7 +46,6 @@ export async function POST(request: Request) {
             });
         }
 
-        await writeMeta(meta);
         return NextResponse.json({ files: uploaded });
     } catch (err) {
         console.error("Upload error:", err);
