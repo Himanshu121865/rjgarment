@@ -309,7 +309,7 @@ export default function CollectionsPage() {
                                                             <p className="font-mono text-[9px] md:text-[10px] font-bold text-black">₹{Number(item.price).toFixed(2)}</p>
                                                         )}
                                                     </div>
-                                                    <div className="absolute top-1 right-1">
+                                                    <div className="absolute top-1 left-1">
                                                         <span className="font-mono text-[7px] md:text-[8px] font-bold uppercase px-1 md:px-1.5 py-0.5 bg-[#ff4800] text-black border border-black">NEW</span>
                                                     </div>
                                                 </motion.div>

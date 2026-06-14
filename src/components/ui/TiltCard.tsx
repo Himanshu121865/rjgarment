@@ -2,7 +2,6 @@
 
 import { useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { Hexagon } from 'lucide-react';
 
 export function TiltCard() {
     const ref = useRef<HTMLDivElement>(null);
@@ -32,10 +31,15 @@ export function TiltCard() {
             style={{ transformStyle: "preserve-3d", rotateX, rotateY }}
             className="relative aspect-square w-full max-w-md rounded-none border-4 border-black bg-white p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] transition-shadow duration-300 z-10"
         >
-            <div style={{ transform: "translateZ(60px)" }} className="flex h-full flex-col justify-between border-4 border-black bg-[#ff4800] p-6 selection:bg-black selection:text-[#ff4800]">
-                <Hexagon size={64} fill="black" className="text-black" strokeWidth={1.5} />
-                <div>
-                    <h3 className="text-5xl font-black uppercase leading-[0.9] tracking-tighter text-black">
+            <div style={{ transform: "translateZ(60px)" }} className="relative h-full w-full border-4 border-black overflow-hidden bg-black">
+                <img
+                    src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop"
+                    alt="Wear The Statement"
+                    className="h-full w-full object-cover opacity-60"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <h3 className="text-5xl font-black uppercase leading-[0.9] tracking-tighter text-white">
                         Wear<br />The<br />Statement
                     </h3>
                 </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, MapPin, Menu, X } from 'lucide-react';
 import Link from 'next/link';
@@ -9,9 +9,21 @@ import { useSavedItems } from '@/context/SavedItemsContext';
 
 export function NavBar() {
     const [open, setOpen] = useState(false);
+    const [activeSection, setActiveSection] = useState<string | null>(null);
     const pathname = usePathname();
     const router = useRouter();
     const { count } = useSavedItems();
+
+    useEffect(() => {
+        const el = document.getElementById('store-location');
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => setActiveSection(entry.isIntersecting ? 'store-location' : null),
+            { threshold: 0.3 }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
 
     const links = [
         { label: 'Home', href: '/', internal: true },
@@ -36,8 +48,11 @@ export function NavBar() {
                 <div className="hidden md:flex items-center gap-8">
                     {links.map((link) => {
                         const Icon = link.icon;
-                        const isCurrentPage = link.internal && pathname === link.href.split('#')[0];
-                        const cls = "group flex items-center gap-1 font-bold uppercase text-sm tracking-widest text-black hover:text-[#ff4800] transition-colors border-b-2 border-transparent hover:border-[#ff4800] pb-1";
+                        const isCurrentPage = link.internal && (
+                            (link.href.includes('#') && activeSection === link.href.split('#')[1]) ||
+                            (!link.href.includes('#') && pathname === link.href)
+                        );
+                        const cls = `group flex items-center gap-1 font-bold uppercase text-sm tracking-widest pb-1 transition-colors border-b-2 ${isCurrentPage ? 'text-[#ff4800] border-[#ff4800]' : 'text-black border-transparent hover:text-[#ff4800] hover:border-[#ff4800]'}`;
                         if (isCurrentPage) {
                             const hash = link.href.split('#')[1];
                             return (
@@ -70,7 +85,7 @@ export function NavBar() {
                     })}
                     <Link
                         href="/saved"
-                        className="flex items-center gap-2 border-2 border-black bg-[#ff4800] px-5 py-2 font-black uppercase text-xs tracking-widest text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
+                        className={`flex items-center gap-2 border-2 px-5 py-2 font-black uppercase text-xs tracking-widest transition-all ${pathname === '/saved' ? 'border-[#ff4800] bg-white text-[#ff4800] shadow-[4px_4px_0px_0px_#ff4800]' : 'border-black bg-[#ff4800] text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5'}`}
                     >
                         <Heart size={16} />
                         Saved
@@ -95,8 +110,11 @@ export function NavBar() {
                     <div className="flex flex-col px-6 pb-6 pt-4 gap-3">
                         {links.map((link) => {
                             const Icon = link.icon;
-                            const isCurrentPage = link.internal && pathname === link.href.split('#')[0];
-                            const cls = "flex items-center gap-3 font-black uppercase text-lg tracking-tighter text-black hover:text-[#ff4800] transition-colors border-b-2 border-black pb-2";
+                            const isCurrentPage = link.internal && (
+                                (link.href.includes('#') && activeSection === link.href.split('#')[1]) ||
+                                (!link.href.includes('#') && pathname === link.href)
+                            );
+                            const cls = `flex items-center gap-3 font-black uppercase text-lg tracking-tighter transition-colors border-b-2 pb-2 ${isCurrentPage ? 'text-[#ff4800] border-[#ff4800]' : 'text-black border-black hover:text-[#ff4800]'}`;
                             if (isCurrentPage) {
                                 const hash = link.href.split('#')[1];
                                 return (
@@ -131,7 +149,7 @@ export function NavBar() {
                         <Link
                             href="/saved"
                             onClick={() => setOpen(false)}
-                            className="flex items-center justify-center gap-2 border-2 border-black bg-[#ff4800] px-5 py-3 font-black uppercase text-sm tracking-widest text-black mt-2 cursor-pointer"
+                            className={`flex items-center justify-center gap-2 border-2 px-5 py-3 font-black uppercase text-sm tracking-widest mt-2 cursor-pointer transition-all ${pathname === '/saved' ? 'border-[#ff4800] bg-white text-[#ff4800]' : 'border-black bg-[#ff4800] text-black'}`}
                         >
                             <Heart size={16} />
                             Saved

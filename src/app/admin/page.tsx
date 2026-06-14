@@ -88,29 +88,45 @@ function AdminLogin({ onLogin }: { onLogin: (pwd: string) => void }) {
 function UploadZone({ password, onUploadComplete }: { password: string; onUploadComplete: () => void }) {
     const [dragging, setDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [total, setTotal] = useState(0);
+    const [completed, setCompleted] = useState(0);
+    const [skipped, setSkipped] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
+    const uploadedRef = useRef<Set<string>>(new Set());
 
     const uploadFiles = useCallback(async (files: FileList) => {
+        const fileArray = Array.from(files).filter((f) => {
+            const key = `${f.name}-${f.size}`;
+            if (uploadedRef.current.has(key)) return false;
+            uploadedRef.current.add(key);
+            return true;
+        });
+
+        const skippedCount = Array.from(files).length - fileArray.length;
+        setSkipped(skippedCount);
+        setTotal(fileArray.length);
+        setCompleted(0);
         setUploading(true);
-        const formData = new FormData();
-        for (const file of Array.from(files)) {
+        let successCount = 0;
+
+        for (const file of fileArray) {
+            const formData = new FormData();
             formData.append('files', file);
+            try {
+                const res = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    headers: { 'x-admin-password': password },
+                    body: formData,
+                });
+                if (res.ok) successCount++;
+            } catch (err) {
+                console.error(err);
+            }
+            setCompleted((prev) => prev + 1);
         }
 
-        try {
-            const res = await fetch('/api/admin/upload', {
-                method: 'POST',
-                headers: { 'x-admin-password': password },
-                body: formData,
-            });
-            if (res.ok) {
-                onUploadComplete();
-            }
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setUploading(false);
-        }
+        setUploading(false);
+        if (successCount > 0) onUploadComplete();
     }, [password, onUploadComplete]);
 
     const handleDrop = (e: React.DragEvent) => {
@@ -127,14 +143,16 @@ function UploadZone({ password, onUploadComplete }: { password: string; onUpload
         }
     };
 
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
     return (
         <div
             onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
             onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
+            onClick={() => !uploading && inputRef.current?.click()}
             className={cn(
-                "relative cursor-pointer border-8 border-black p-16 text-center transition-all duration-200",
+                "relative cursor-pointer border-8 border-black p-8 md:p-16 text-center transition-all duration-200",
                 dragging
                     ? "bg-[#ff4800] border-dashed scale-[1.02]"
                     : "bg-white hover:bg-gray-50"
@@ -156,13 +174,22 @@ function UploadZone({ password, onUploadComplete }: { password: string; onUpload
 
             {uploading ? (
                 <div className="flex flex-col items-center gap-4">
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                    >
-                        <Upload size={64} className="text-black" />
-                    </motion.div>
+                    <Upload size={48} className="text-black" />
                     <p className="font-black text-2xl uppercase tracking-tighter text-black">Uploading...</p>
+                    {skipped > 0 && (
+                        <p className="font-mono text-xs uppercase tracking-widest text-gray-500">
+                            Skipped {skipped} duplicate{skipped !== 1 ? 's' : ''}
+                        </p>
+                    )}
+                    <div className="w-full max-w-md border-4 border-black bg-white h-8 relative overflow-hidden">
+                        <div
+                            className="h-full bg-[#ff4800] transition-all duration-300"
+                            style={{ width: `${pct}%`, clipPath: 'polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%)' }}
+                        />
+                    </div>
+                    <p className="font-mono text-sm font-bold uppercase tracking-widest text-black">
+                        {completed} of {total} uploaded
+                    </p>
                 </div>
             ) : (
                 <div className="flex flex-col items-center gap-4">
@@ -179,8 +206,10 @@ function UploadZone({ password, onUploadComplete }: { password: string; onUpload
     );
 }
 
-function MediaCard({ file, password, onDelete, onMetaChange }: { file: MediaFile; password: string; onDelete: () => void; onMetaChange: (name: string, field: 'displayName' | 'price' | 'category', value: string | number) => void }) {
+function MediaCard({ file, password, onDelete, onMetaChange, selected, onToggleSelect }: { file: MediaFile; password: string; onDelete: () => void; onMetaChange: (name: string, field: 'displayName' | 'price' | 'category', value: string | number) => void; selected: boolean; onToggleSelect: (name: string) => void }) {
     const [preview, setPreview] = useState<MediaFile | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [displayName, setDisplayName] = useState(file.displayName);
     const [price, setPrice] = useState(file.price.toString());
     const [category, setCategory] = useState(file.category);
@@ -222,7 +251,7 @@ function MediaCard({ file, password, onDelete, onMetaChange }: { file: MediaFile
     };
 
     const handleDelete = async () => {
-        if (!confirm('Delete this file?')) return;
+        setDeleting(true);
         try {
             const res = await fetch(`/api/admin/media/${file.name}`, {
                 method: 'DELETE',
@@ -231,6 +260,9 @@ function MediaCard({ file, password, onDelete, onMetaChange }: { file: MediaFile
             if (res.ok) onDelete();
         } catch (err) {
             console.error(err);
+        } finally {
+            setDeleting(false);
+            setDeleteConfirm(false);
         }
     };
 
@@ -240,7 +272,10 @@ function MediaCard({ file, password, onDelete, onMetaChange }: { file: MediaFile
                 layout
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="group relative border-4 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden"
+                className={cn(
+                    "group relative border-4 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden",
+                    selected ? "border-[#ff4800]" : "border-black"
+                )}
             >
                 <div className="aspect-[4/3] overflow-hidden bg-black cursor-pointer" onClick={() => setPreview(file)}>
                     {file.type === 'image' ? (
@@ -295,7 +330,7 @@ function MediaCard({ file, password, onDelete, onMetaChange }: { file: MediaFile
                                 <Eye size={14} />
                             </button>
                             <button
-                                onClick={handleDelete}
+                                onClick={() => setDeleteConfirm(true)}
                                 className="border-2 border-black p-1.5 hover:bg-[#ff4800] hover:text-white transition-colors"
                             >
                                 <Trash2 size={14} />
@@ -321,7 +356,16 @@ function MediaCard({ file, password, onDelete, onMetaChange }: { file: MediaFile
                     </div>
                 </div>
 
-                <div className="absolute top-2 left-2">
+                <div className="absolute top-2 left-2 flex gap-1.5">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onToggleSelect(file.name); }}
+                        className={cn(
+                            "border-2 border-black w-6 h-6 flex items-center justify-center transition-colors cursor-pointer",
+                            selected ? "bg-[#ff4800]" : "bg-white hover:bg-gray-200"
+                        )}
+                    >
+                        {selected && <Check size={14} className="text-black" strokeWidth={4} />}
+                    </button>
                     <span className={cn(
                         "font-mono text-[10px] font-bold uppercase px-2 py-1 border-2 border-black",
                         file.type === 'image' ? "bg-white text-black" : "bg-black text-white"
@@ -379,11 +423,53 @@ function MediaCard({ file, password, onDelete, onMetaChange }: { file: MediaFile
                     </motion.div>
                 </div>
             )}
+
+            {deleteConfirm && (
+                <div
+                    className="fixed inset-0 z-[250] bg-black/80 flex items-center justify-center p-6"
+                    onClick={() => !deleting && setDeleteConfirm(false)}
+                >
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="max-w-sm w-full border-8 border-black bg-white p-8 shadow-[16px_16px_0px_0px_rgba(0,0,0,1)]"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="text-center">
+                            <div className="inline-flex border-4 border-black bg-[#ff4800] p-4 mb-6">
+                                <Trash2 size={32} className="text-black" />
+                            </div>
+                            <h3 className="text-2xl font-black uppercase tracking-tighter text-black mb-2">
+                                Delete File?
+                            </h3>
+                            <p className="font-mono text-xs uppercase tracking-widest text-gray-500 mb-6 truncate">
+                                {file.displayName || file.name}
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDeleteConfirm(false)}
+                                    disabled={deleting}
+                                    className="flex-1 border-4 border-black bg-white py-3 font-black uppercase text-sm tracking-widest text-black hover:bg-gray-100 transition-colors disabled:opacity-50 cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    disabled={deleting}
+                                    className="flex-1 border-4 border-black bg-[#ff4800] py-3 font-black uppercase text-sm tracking-widest text-black hover:bg-[#e04000] transition-colors disabled:opacity-50 cursor-pointer"
+                                >
+                                    {deleting ? '...' : 'Delete'}
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </>
     );
 }
 
-function MediaGrid({ files, password, onDelete, onMetaChange }: { files: MediaFile[]; password: string; onDelete: () => void; onMetaChange: (name: string, field: 'displayName' | 'price' | 'category', value: string | number) => void }) {
+function MediaGrid({ files, password, onDelete, onMetaChange, selected, onToggleSelect }: { files: MediaFile[]; password: string; onDelete: () => void; onMetaChange: (name: string, field: 'displayName' | 'price' | 'category', value: string | number) => void; selected: Set<string>; onToggleSelect: (name: string) => void }) {
     if (!files.length) {
         return (
             <div className="border-8 border-black bg-white p-16 text-center">
@@ -403,7 +489,7 @@ function MediaGrid({ files, password, onDelete, onMetaChange }: { files: MediaFi
     return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {files.map((file) => (
-                <MediaCard key={file.name} file={file} password={password} onDelete={onDelete} onMetaChange={onMetaChange} />
+                <MediaCard key={file.name} file={file} password={password} onDelete={onDelete} onMetaChange={onMetaChange} selected={selected.has(file.name)} onToggleSelect={onToggleSelect} />
             ))}
         </div>
     );
@@ -416,6 +502,9 @@ export default function AdminPage() {
     const [files, setFiles] = useState<MediaFile[]>([]);
     const [loading, setLoading] = useState(true);
     const [checking, setChecking] = useState(true);
+    const [selected, setSelected] = useState<Set<string>>(new Set());
+    const [bulkDeleting, setBulkDeleting] = useState(false);
+    const [showBulkConfirm, setShowBulkConfirm] = useState(false);
 
     useEffect(() => {
         const stored = sessionStorage.getItem('admin_token');
@@ -442,6 +531,47 @@ export default function AdminPage() {
             setLoading(false);
         }
     }, [token]);
+
+    useEffect(() => {
+        setSelected(new Set());
+    }, [files]);
+
+    const toggleSelect = (name: string) => {
+        setSelected((prev) => {
+            const next = new Set(prev);
+            if (next.has(name)) next.delete(name);
+            else next.add(name);
+            return next;
+        });
+    };
+
+    const selectAll = () => {
+        if (selected.size === files.length) {
+            setSelected(new Set());
+        } else {
+            setSelected(new Set(files.map((f) => f.name)));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        setBulkDeleting(true);
+        let ok = 0;
+        for (const name of selected) {
+            try {
+                const res = await fetch(`/api/admin/media/${name}`, {
+                    method: 'DELETE',
+                    headers: { 'x-admin-password': token! },
+                });
+                if (res.ok) ok++;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        setBulkDeleting(false);
+        setShowBulkConfirm(false);
+        setSelected(new Set());
+        if (ok > 0) fetchMedia();
+    };
 
     useEffect(() => {
         if (token) fetchMedia();
@@ -522,18 +652,84 @@ export default function AdminPage() {
                     </div>
 
                     {loading ? (
-                        <div className="flex items-center justify-center py-32">
+                        <div className="flex items-center justify-center py-32 gap-3 h-40">
+                            {[0, 1, 2].map((i) => (
+                                <motion.div
+                                    key={i}
+                                    animate={{ scaleY: [0.4, 1, 0.4] }}
+                                    transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15, ease: 'easeInOut' }}
+                                    className="w-4 h-16 origin-bottom border-4 border-black bg-[#ff4800] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <>
+                            {selected.size > 0 && (
+                                <div className="flex items-center justify-between mb-6 border-4 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            onClick={selectAll}
+                                            className="border-2 border-black px-3 py-1.5 font-mono text-xs font-bold uppercase hover:bg-gray-100 transition-colors cursor-pointer"
+                                        >
+                                            {selected.size === files.length ? 'Deselect All' : 'Select All'}
+                                        </button>
+                                        <span className="font-mono text-xs font-bold uppercase text-black">
+                                            {selected.size} selected
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowBulkConfirm(true)}
+                                        className="flex items-center gap-2 border-2 border-black bg-[#ff4800] px-4 py-2 font-black text-xs uppercase hover:bg-[#e04000] transition-colors cursor-pointer"
+                                    >
+                                        <Trash2 size={14} />
+                                        Delete Selected
+                                    </button>
+                                </div>
+                            )}
+                            <MediaGrid files={files} password={token} onDelete={fetchMedia} onMetaChange={() => {}} selected={selected} onToggleSelect={toggleSelect} />
+                        </>
+                    )}
+
+                    {showBulkConfirm && (
+                        <div
+                            className="fixed inset-0 z-[250] bg-black/80 flex items-center justify-center p-6"
+                            onClick={() => !bulkDeleting && setShowBulkConfirm(false)}
+                        >
                             <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="max-w-sm w-full border-8 border-black bg-white p-8 shadow-[16px_16px_0px_0px_rgba(0,0,0,1)]"
+                                onClick={(e) => e.stopPropagation()}
                             >
-                                <div className="border-8 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                                    <span className="font-black text-2xl">RJ</span>
+                                <div className="text-center">
+                                    <div className="inline-flex border-4 border-black bg-[#ff4800] p-4 mb-6">
+                                        <Trash2 size={32} className="text-black" />
+                                    </div>
+                                    <h3 className="text-2xl font-black uppercase tracking-tighter text-black mb-2">
+                                        Delete {selected.size} file{selected.size !== 1 ? 's' : ''}?
+                                    </h3>
+                                    <p className="font-mono text-xs uppercase tracking-widest text-gray-500 mb-6">
+                                        This cannot be undone
+                                    </p>
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => setShowBulkConfirm(false)}
+                                            disabled={bulkDeleting}
+                                            className="flex-1 border-4 border-black bg-white py-3 font-black uppercase text-sm tracking-widest text-black hover:bg-gray-100 transition-colors disabled:opacity-50 cursor-pointer"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleBulkDelete}
+                                            disabled={bulkDeleting}
+                                            className="flex-1 border-4 border-black bg-[#ff4800] py-3 font-black uppercase text-sm tracking-widest text-black hover:bg-[#e04000] transition-colors disabled:opacity-50 cursor-pointer"
+                                        >
+                                            {bulkDeleting ? '...' : 'Delete'}
+                                        </button>
+                                    </div>
                                 </div>
                             </motion.div>
                         </div>
-                    ) : (
-                        <MediaGrid files={files} password={token} onDelete={fetchMedia} onMetaChange={() => {}} />
                     )}
                 </section>
             </main>

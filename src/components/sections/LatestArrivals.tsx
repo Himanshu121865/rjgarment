@@ -99,7 +99,7 @@ export function LatestArrivals() {
                                                 </p>
                                             )}
                                         </div>
-                                        <div className="absolute top-1.5 right-1.5 md:top-2 md:right-2">
+                                        <div className="absolute top-1.5 left-1.5 md:top-2 md:left-2">
                                             <span className="font-mono text-[8px] md:text-[10px] font-bold uppercase px-1.5 md:px-2 py-0.5 md:py-1 bg-[#ff4800] text-black border border-black md:border-2">
                                                 NEW
                                             </span>
