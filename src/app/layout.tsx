@@ -3,20 +3,20 @@ import "./globals.css";
 import { LayoutProvider } from "@/components/layout/LayoutProvider";
 
 export const metadata: Metadata = {
-    title: "BRUTALISM LIVES",
-    description: "Design without apology. High-contrast, maximum impact structure.",
+  title: "Rajesh Garments",
+  description: "clothing store for man and kids",
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-    return (
-        <html lang="en" className="h-full antialiased">
-            <body className="min-h-full">
-                <LayoutProvider>{children}</LayoutProvider>
-            </body>
-        </html>
-    );
+  return (
+    <html lang="en" className="h-full antialiased">
+      <body className="min-h-full">
+        <LayoutProvider>{children}</LayoutProvider>
+      </body>
+    </html>
+  );
 }
