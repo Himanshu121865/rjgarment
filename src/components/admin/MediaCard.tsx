@@ -182,12 +182,12 @@ export function MediaCard({
               />
             </div>
             <div className="flex gap-1">
-              <button
-                onClick={() => setPreview(file)}
-                className="border-2 border-black p-1.5 hover:bg-black hover:text-white transition-colors"
-              >
-                <Eye size={14} />
-              </button>
+              {/* <button */}
+              {/*   onClick={() => setPreview(file)} */}
+              {/*   className="border-2 border-black p-1.5 hover:bg-black hover:text-white transition-colors" */}
+              {/* > */}
+              {/*   <Eye size={14} /> */}
+              {/* </button> */}
               <button
                 onClick={() => setDeleteConfirm(true)}
                 className="border-2 border-black p-1.5 hover:bg-[#ff4800] hover:text-white transition-colors"
