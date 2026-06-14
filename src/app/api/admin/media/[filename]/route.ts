@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import { unlink } from "fs/promises";
-import path from "path";
 import { readMeta, writeMeta } from "@/lib/media-meta";
-
-const ALLOWED_EXT = /\.(jpg|jpeg|png|webp|gif|mp4|webm|mov)$/i;
+import { deleteCloudinaryResource, FOLDER } from "@/lib/cloudinary";
 
 function checkAuth(request: Request): boolean {
     const pwd = request.headers.get("x-admin-password");
@@ -20,13 +17,9 @@ export async function DELETE(
 
     try {
         const { filename } = await params;
+        const publicId = `${FOLDER}/${filename}`;
 
-        if (!ALLOWED_EXT.test(filename)) {
-            return NextResponse.json({ error: "Invalid file" }, { status: 400 });
-        }
-
-        const filePath = path.join(process.cwd(), "public", "uploads", filename);
-        await unlink(filePath);
+        await deleteCloudinaryResource(publicId);
 
         const meta = await readMeta();
         delete meta[filename];

@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { readdir, stat } from "fs/promises";
-import path from "path";
-import { existsSync } from "fs";
 import { readMeta } from "@/lib/media-meta";
+import { listCloudinaryResources, FOLDER } from "@/lib/cloudinary";
 
 function checkAuth(request: Request): boolean {
     const pwd = request.headers.get("x-admin-password");
@@ -15,36 +13,25 @@ export async function GET(request: Request) {
     }
 
     try {
-        const uploadDir = path.join(process.cwd(), "public", "uploads");
-        if (!existsSync(uploadDir)) {
-            return NextResponse.json({ files: [] });
-        }
+        const [meta, resources] = await Promise.all([
+            readMeta(),
+            listCloudinaryResources(),
+        ]);
 
-        const meta = await readMeta();
-        const entries = await readdir(uploadDir);
-        const files = await Promise.all(
-            entries
-                .filter((name) => !name.startsWith("_"))
-                .map(async (name) => {
-                    const full = path.join(uploadDir, name);
-                    const s = await stat(full);
-                    const isImage = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(name);
-                    const isVideo = /\.(mp4|webm|mov)$/i.test(name);
-                    const m = meta[name];
-                    return {
-                        name,
-                        url: `/uploads/${name}`,
-                        type: isImage ? "image" : isVideo ? "video" : "other",
-                        size: s.size,
-                        createdAt: s.birthtime.toISOString(),
-                        displayName: m?.displayName ?? name,
-                        price: m?.price ?? 0,
-                        category: m?.category ?? "",
-                    };
-                })
-        );
-
-        files.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const files = resources.map((r) => {
+            const key = r.public_id.replace(`${FOLDER}/`, '');
+            const m = meta[key];
+            return {
+                name: key,
+                url: r.url,
+                type: r.type,
+                size: r.size,
+                createdAt: r.createdAt,
+                displayName: m?.displayName ?? r.filename,
+                price: m?.price ?? 0,
+                category: m?.category ?? "",
+            };
+        });
 
         return NextResponse.json({ files });
     } catch (err) {

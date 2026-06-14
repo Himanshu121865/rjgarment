@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import path from "path";
 import { ensureUploadDir, readMeta, writeMeta, defaultDisplayName } from "@/lib/media-meta";
+import { uploadToCloudinary, FOLDER } from "@/lib/cloudinary";
 
-const ALLOWED_IMAGES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ALLOWED_IMAGES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
 const ALLOWED_VIDEOS = ["video/mp4", "video/webm", "video/quicktime"];
 const ALLOWED = [...ALLOWED_IMAGES, ...ALLOWED_VIDEOS];
 const MAX_SIZE = 50 * 1024 * 1024;
@@ -27,29 +26,26 @@ export async function POST(request: Request) {
         }
 
         await ensureUploadDir();
-        const uploadDir = path.join(process.cwd(), "public", "uploads");
         const meta = await readMeta();
-
         const uploaded: { name: string; url: string; type: string; size: number }[] = [];
 
         for (const file of files) {
             if (!ALLOWED.includes(file.type)) continue;
             if (file.size > MAX_SIZE) continue;
 
-            const ext = file.name.split(".").pop();
-            const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
             const buffer = Buffer.from(await file.arrayBuffer());
-            await writeFile(path.join(uploadDir, unique), buffer);
+            const resource = await uploadToCloudinary(buffer, file.name, file.type);
+            const key = resource.public_id.replace(`${FOLDER}/`, '');
 
-            meta[unique] = {
+            meta[key] = {
                 displayName: defaultDisplayName(file.name),
                 price: 0,
                 category: "",
             };
 
             uploaded.push({
-                name: unique,
-                url: `/uploads/${unique}`,
+                name: key,
+                url: resource.url,
                 type: file.type,
                 size: file.size,
             });
