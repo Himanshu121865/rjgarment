@@ -231,7 +231,6 @@ export default function CollectionsPage() {
     return (
         <div className="bg-[#E0E0E0] selection:bg-[#ff4800] selection:text-black">
 
-            {/* COLLECTIONS */}
             <div className="relative px-4 md:px-12 pt-24 md:pt-28 pb-16 md:pb-24">
                 <div className="max-w-7xl mx-auto">
                     <div className="mb-8 md:mb-12 border-b-4 md:border-b-8 border-black pb-4 md:pb-8">

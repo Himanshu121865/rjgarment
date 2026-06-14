@@ -13,7 +13,6 @@ if (typeof window !== "undefined") {
     gsap.registerPlugin(ScrollTrigger);
 }
 
-// --- GSAP UTILITIES ---
 export const BrutalReveal = ({ text, className = "", delay = 0 }: { text: string; className?: string; delay?: number }) => {
     const elRef = useRef<HTMLDivElement>(null);
 
@@ -42,9 +41,7 @@ export const BrutalReveal = ({ text, className = "", delay = 0 }: { text: string
     );
 };
 
-// --- COMPONENTS ---
 
-// 1. Noise Overlay
 export function NoiseOverlay() {
     return (
         <div className="pointer-events-none fixed inset-0 z-[100] opacity-[0.04] mix-blend-difference">
@@ -58,7 +55,6 @@ export function NoiseOverlay() {
     );
 }
 
-// 2. Brutalist Button
 export function BrutalButton({ children, className }: { children: React.ReactNode; className?: string }) {
     return (
         <motion.button
@@ -75,7 +71,6 @@ export function BrutalButton({ children, className }: { children: React.ReactNod
     );
 }
 
-// 3. 3D Tilt Card
 export function TiltCard() {
     const ref = useRef<HTMLDivElement>(null);
     const x = useMotionValue(0);
@@ -120,7 +115,6 @@ export function TiltCard() {
     );
 }
 
-// 4. Infinite Marquee
 export function Marquee({ text = "RAW POWER", bg = "bg-white", color = "text-black" }) {
     return (
         <div className={cn("relative flex overflow-x-hidden border-y-4 border-black py-4", bg)}>
@@ -142,7 +136,6 @@ export function Marquee({ text = "RAW POWER", bg = "bg-white", color = "text-bla
     );
 }
 
-// --- NAVBAR ---
 export function NavBar() {
     const [open, setOpen] = useState(false);
     const pathname = usePathname();
@@ -257,9 +250,7 @@ export function NavBar() {
     );
 }
 
-// --- SECTIONS ---
 
-// SECTION 1: HERO
 function BrutalHero({ title, subtitle }: { title: string, subtitle: string }) {
     return (
         <section className="relative min-h-screen flex flex-col md:flex-row items-center justify-center p-6 md:p-12 overflow-hidden bg-[#E0E0E0] z-10 pt-24 border-b-8 border-black">
@@ -286,7 +277,6 @@ function BrutalHero({ title, subtitle }: { title: string, subtitle: string }) {
     );
 }
 
-// SECTION 2: LATEST ARRIVALS
 type Season = 'Spring' | 'Summer' | 'Fall' | 'Winter';
 
 const SEASON_ORDER: Season[] = ['Spring', 'Summer', 'Fall', 'Winter'];
@@ -413,7 +403,6 @@ function LatestArrivals() {
     );
 }
 
-// SECTION 3: STATEMENT
 function BrutalStatement({ statement }: { statement: string }) {
     const sectionRef = useRef(null);
     return (
@@ -435,7 +424,6 @@ function BrutalStatement({ statement }: { statement: string }) {
     );
 }
 
-// SECTION 3: CINEMATIC STACK
 function CinematicStack() {
     const cards = [
         { title: 'RAW', desc: 'Heavy-weight fabrics. Unfinished edges. Uncompromising build.', bg: 'bg-white', text: 'text-black' },
@@ -475,7 +463,6 @@ function CinematicStack() {
     );
 }
 
-// SECTION 4: STORE LOCATION
 function StoreLocation() {
     const [interacted, setInteracted] = useState(false);
     const [mapKey, setMapKey] = useState(0);
@@ -560,7 +547,6 @@ function StoreLocation() {
     );
 }
 
-// SECTION 6: BRUTAL GALLERY
 function BrutalGallery({ images }: { images: string[] }) {
     const ref = useRef(null);
     
@@ -592,7 +578,6 @@ function BrutalGallery({ images }: { images: string[] }) {
     );
 }
 
-// SECTION 7: FOOTER
 function BrutalFooter() {
     return (
         <footer className="bg-black text-white pt-32 overflow-hidden border-t-8 border-[#ff4800]">
@@ -611,7 +596,6 @@ function BrutalFooter() {
     );
 }
 
-// --- MAIN PAGE EXPORT ---
 export interface BrutalismPageProps {
     heroTitle?: string;
     heroSubtitle?: string;
