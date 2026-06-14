@@ -315,13 +315,7 @@ function MediaCard({
         [password, onMetaChange],
     );
 
-    useEffect(() => {
-        setDisplayName(file.displayName);
-        setPrice(file.price.toString());
-        setCategory(file.category);
-    }, [file.displayName, file.price, file.category]);
-
-  const handleNameChange = (val: string) => {
+    const handleNameChange = (val: string) => {
     setDisplayName(val);
     clearTimeout(nameTimer.current);
     nameTimer.current = setTimeout(
@@ -423,7 +417,7 @@ function MediaCard({
                 value={price}
                 onChange={(e) => handlePriceChange(e.target.value)}
                 type="number"
-                step="0.01"
+                step="1"
                 min="0"
                 className="w-10 font-mono text-sm font-bold bg-transparent border-0 outline-none text-black"
               />
@@ -450,7 +444,7 @@ function MediaCard({
             <select
               value={category}
               onChange={(e) => handleCategoryChange(e.target.value)}
-              className="flex-1 font-mono text-[11px] uppercase tracking-wider bg-transparent border-0 border-b border-dotted border-gray-300 focus:border-black outline-none px-1 text-black cursor-pointer"
+              className="flex-1 font-mono text-[11px] uppercase tracking-wider bg-white border-2 border-black px-2 py-1 text-black font-bold cursor-pointer"
             >
               <option value="">Auto</option>
               <option value="Spring">Spring</option>
