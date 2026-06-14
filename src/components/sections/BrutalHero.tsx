@@ -7,7 +7,6 @@ import { BrutalButton } from "@/components/ui/BrutalButton";
 import { TiltCard } from "@/components/ui/TiltCard";
 import { MagneticChar } from "@/components/ui/MagneticHover";
 import Ferrofluid from "@/components/ui/Ferrofluid";
-import PixelSnow from "@/components/ui/PixelSnow";
 
 export function BrutalHero({ title }: { title: string }) {
   const mouseX = useMotionValue(-1000);
@@ -34,7 +33,7 @@ export function BrutalHero({ title }: { title: string }) {
         mouseY.set(-1000);
       }}
     >
-      {isDesktop ? (
+      {isDesktop && (
         <div className="absolute inset-0 z-0">
           <Ferrofluid
             colors={["#ff4800", "#ff6b2b", "#ffffff"]}
@@ -51,20 +50,6 @@ export function BrutalHero({ title }: { title: string }) {
             mouseInteraction={false}
             mouseStrength={1.2}
             mouseRadius={0.5}
-          />
-        </div>
-      ) : (
-        <div className="absolute inset-0 z-0">
-          <PixelSnow
-            color="#ff4800"
-            flakeSize={0.03}
-            minFlakeSize={0.5}
-            pixelResolution={100}
-            speed={0.8}
-            density={0.02}
-            direction={135}
-            brightness={0.6}
-            variant="square"
           />
         </div>
       )}
