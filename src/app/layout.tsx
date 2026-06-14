@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import "./globals.css";
 import { LayoutProvider } from "@/components/layout/LayoutProvider";
@@ -19,6 +20,7 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full">
         <LayoutProvider>{children}</LayoutProvider>
+        <Analytics />
       </body>
     </html>
   );
