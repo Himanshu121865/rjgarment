@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ensureUploadDir, readMeta, writeMeta, defaultDisplayName } from "@/lib/media-meta";
+import { readMeta, writeMeta, defaultDisplayName } from "@/lib/media-meta";
 import { uploadToCloudinary, FOLDER } from "@/lib/cloudinary";
 
 const ALLOWED_IMAGES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
@@ -25,7 +25,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "No files provided" }, { status: 400 });
         }
 
-        await ensureUploadDir();
         const meta = await readMeta();
         const uploaded: { name: string; url: string; type: string; size: number }[] = [];
 
@@ -55,6 +54,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ files: uploaded });
     } catch (err) {
         console.error("Upload error:", err);
-        return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+        const msg = err instanceof Error ? err.message : "Upload failed";
+        return NextResponse.json({ error: msg }, { status: 500 });
     }
 }

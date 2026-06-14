@@ -10,16 +10,16 @@ export interface FileMeta {
 
 export type MediaMeta = Record<string, FileMeta>;
 
-function metaPath(): string {
-    return path.join(process.cwd(), "public", "uploads", "_meta.json");
+function metaDir(): string {
+    return path.join(process.env.VERCEL ? '/tmp' : process.cwd(), "rjgarment-meta");
 }
 
-function uploadDir(): string {
-    return path.join(process.cwd(), "public", "uploads");
+function metaPath(): string {
+    return path.join(metaDir(), "_meta.json");
 }
 
 export async function ensureUploadDir(): Promise<void> {
-    const dir = uploadDir();
+    const dir = metaDir();
     if (!existsSync(dir)) {
         await mkdir(dir, { recursive: true });
     }

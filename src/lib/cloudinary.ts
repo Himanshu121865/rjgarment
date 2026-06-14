@@ -22,28 +22,21 @@ export async function uploadToCloudinary(
     filename: string,
     mimetype: string,
 ): Promise<CloudinaryResource> {
-    return new Promise((resolve, reject) => {
-        const publicId = `${FOLDER}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        const uploadStream = cloudinary.uploader.upload_stream(
-            {
-                public_id: publicId,
-                resource_type: mimetype.startsWith('video') ? 'video' : 'image',
-            },
-            (err, result) => {
-                if (err || !result) return reject(err || new Error('Upload failed'));
-                const isVideo = mimetype.startsWith('video');
-                resolve({
-                    public_id: result.public_id,
-                    url: result.secure_url,
-                    type: isVideo ? 'video' : 'image',
-                    size: result.bytes,
-                    createdAt: result.created_at,
-                    filename: filename,
-                });
-            },
-        );
-        uploadStream.end(buffer);
+    const publicId = `${FOLDER}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const dataUri = `data:${mimetype};base64,${buffer.toString('base64')}`;
+    const result = await cloudinary.uploader.upload(dataUri, {
+        public_id: publicId,
+        resource_type: mimetype.startsWith('video') ? 'video' : 'image',
     });
+    const isVideo = mimetype.startsWith('video');
+    return {
+        public_id: result.public_id,
+        url: result.secure_url,
+        type: isVideo ? 'video' : 'image',
+        size: result.bytes,
+        createdAt: result.created_at,
+        filename,
+    };
 }
 
 export async function listCloudinaryResources(): Promise<CloudinaryResource[]> {
