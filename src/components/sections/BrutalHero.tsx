@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useMotionValue } from 'framer-motion';
 import { BrutalButton } from '@/components/ui/BrutalButton';
@@ -10,6 +11,15 @@ import Ferrofluid from '@/components/ui/Ferrofluid';
 export function BrutalHero({ title }: { title: string }) {
     const mouseX = useMotionValue(-1000);
     const mouseY = useMotionValue(-1000);
+    const [isDesktop, setIsDesktop] = useState(false);
+
+    useEffect(() => {
+        const mq = window.matchMedia('(min-width: 768px)');
+        setIsDesktop(mq.matches);
+        const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+        mq.addEventListener('change', handler);
+        return () => mq.removeEventListener('change', handler);
+    }, []);
 
     return (
         <section
@@ -17,24 +27,26 @@ export function BrutalHero({ title }: { title: string }) {
             onMouseMove={(e) => { mouseX.set(e.clientX); mouseY.set(e.clientY); }}
             onMouseLeave={() => { mouseX.set(-1000); mouseY.set(-1000); }}
         >
-            <div className="absolute inset-0 z-0">
-                <Ferrofluid
-                    colors={["#ff4800", "#ff6b2b", "#ffffff"]}
-                    speed={0.3}
-                    scale={2}
-                    turbulence={0.8}
-                    fluidity={0.15}
-                    rimWidth={0.25}
-                    sharpness={2}
-                    shimmer={1}
-                    glow={1.5}
-                    opacity={0.8}
-                    flowDirection="down"
-                    mouseInteraction={true}
-                    mouseStrength={1.2}
-                    mouseRadius={0.3}
-                />
-            </div>
+            {isDesktop && (
+                <div className="absolute inset-0 z-0">
+                    <Ferrofluid
+                        colors={["#ff4800", "#ff6b2b", "#ffffff"]}
+                        speed={0.3}
+                        scale={2}
+                        turbulence={0.8}
+                        fluidity={0.15}
+                        rimWidth={0.25}
+                        sharpness={2}
+                        shimmer={1}
+                        glow={1.5}
+                        opacity={0.8}
+                        flowDirection="down"
+                        mouseInteraction={true}
+                        mouseStrength={1.2}
+                        mouseRadius={0.3}
+                    />
+                </div>
+            )}
             <div className="w-full md:w-1/2 flex flex-col justify-center space-y-8 z-20">
                 <h1 className="flex flex-col leading-none">
                     {title.split(' ').map((word, wi) => (
