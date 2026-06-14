@@ -220,7 +220,10 @@ export function MediaCard({
               </motion.div>
             )}
             {saveError && (
-              <span className="text-[9px] font-mono text-[#ff4800] uppercase flex-shrink-0 max-w-[80px] truncate" title={saveError}>
+              <span
+                className="text-[9px] font-mono text-[#ff4800] uppercase flex-shrink-0 max-w-[80px] truncate"
+                title={saveError}
+              >
                 ERR
               </span>
             )}

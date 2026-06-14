@@ -1,11 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, MapPin, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSavedItems } from '@/context/SavedItemsContext';
+
+const NAVBAR_HEIGHT = 80;
+
+function scrollToHash(hash: string) {
+    const el = document.getElementById(hash);
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - NAVBAR_HEIGHT;
+    window.scrollTo({ top, behavior: 'smooth' });
+}
 
 export function NavBar() {
     const [open, setOpen] = useState(false);
@@ -13,6 +22,15 @@ export function NavBar() {
     const pathname = usePathname();
     const router = useRouter();
     const { count } = useSavedItems();
+    const pendingHash = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (pendingHash.current && pathname === '/') {
+            const hash = pendingHash.current;
+            pendingHash.current = null;
+            requestAnimationFrame(() => scrollToHash(hash));
+        }
+    }, [pathname]);
 
     useEffect(() => {
         const el = document.getElementById('store-location');
@@ -23,7 +41,7 @@ export function NavBar() {
         );
         observer.observe(el);
         return () => observer.disconnect();
-    }, []);
+    }, [pathname]);
 
     const links = [
         { label: 'Home', href: '/', internal: true },
@@ -53,16 +71,32 @@ export function NavBar() {
                             (!link.href.includes('#') && pathname === link.href)
                         );
                         const cls = `group flex items-center gap-1 font-bold uppercase text-sm tracking-widest pb-1 transition-colors border-b-2 ${isCurrentPage ? 'text-[#ff4800] border-[#ff4800]' : 'text-black border-transparent hover:text-[#ff4800] hover:border-[#ff4800]'}`;
-                        if (link.href.includes('#') || isCurrentPage) {
-                            const hash = link.href.split('#')[1];
+
+                        if (link.href.includes('#')) {
+                            const [basePath, hash] = link.href.split('#');
+                            const onTargetPage = basePath === '' || basePath === pathname;
+                            if (onTargetPage) {
+                                return (
+                                    <button key={link.label} onClick={() => scrollToHash(hash)} className={`${cls} cursor-pointer`}>
+                                        {Icon && <Icon size={16} />}
+                                        {link.label}
+                                    </button>
+                                );
+                            }
                             return (
                                 <button key={link.label} onClick={() => {
-                                    if (hash) {
-                                        document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' });
-                                    } else {
-                                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                                    }
+                                    pendingHash.current = hash;
+                                    router.push(basePath || '/');
                                 }} className={`${cls} cursor-pointer`}>
+                                    {Icon && <Icon size={16} />}
+                                    {link.label}
+                                </button>
+                            );
+                        }
+
+                        if (isCurrentPage) {
+                            return (
+                                <button key={link.label} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={`${cls} cursor-pointer`}>
                                     {Icon && <Icon size={16} />}
                                     {link.label}
                                 </button>
@@ -115,17 +149,36 @@ export function NavBar() {
                                 (!link.href.includes('#') && pathname === link.href)
                             );
                             const cls = `flex items-center gap-3 font-black uppercase text-lg tracking-tighter transition-colors border-b-2 pb-2 ${isCurrentPage ? 'text-[#ff4800] border-[#ff4800]' : 'text-black border-black hover:text-[#ff4800]'}`;
-                        if (link.href.includes('#') || isCurrentPage) {
-                                const hash = link.href.split('#')[1];
+
+                            if (link.href.includes('#')) {
+                                const [basePath, hash] = link.href.split('#');
+                                const onTargetPage = basePath === '' || basePath === pathname;
+                                if (onTargetPage) {
+                                    return (
+                                        <button key={link.label} onClick={() => {
+                                            setOpen(false);
+                                            scrollToHash(hash);
+                                        }} className={`${cls} cursor-pointer text-left`}>
+                                            {Icon && <Icon size={20} />}
+                                            {link.label}
+                                        </button>
+                                    );
+                                }
                                 return (
                                     <button key={link.label} onClick={() => {
                                         setOpen(false);
-                                        if (hash) {
-                                            document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' });
-                                        } else {
-                                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                                        }
+                                        pendingHash.current = hash;
+                                        router.push(basePath || '/');
                                     }} className={`${cls} cursor-pointer text-left`}>
+                                        {Icon && <Icon size={20} />}
+                                        {link.label}
+                                    </button>
+                                );
+                            }
+
+                            if (isCurrentPage) {
+                                return (
+                                    <button key={link.label} onClick={() => { setOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`${cls} cursor-pointer text-left`}>
                                         {Icon && <Icon size={20} />}
                                         {link.label}
                                     </button>

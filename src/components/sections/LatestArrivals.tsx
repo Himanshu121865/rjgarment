@@ -2,14 +2,17 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { X } from 'lucide-react';
 import { RecentItem } from '@/lib/helpers/season';
 import { ColorRevealImg } from '@/components/ui/ColorRevealImg';
+import { formatSize } from '@/lib/format';
 
 export function LatestArrivals() {
     const [items, setItems] = useState<RecentItem[]>([]);
     const [loaded, setLoaded] = useState(false);
     const [page, setPage] = useState(0);
     const [perPage, setPerPage] = useState(6);
+    const [preview, setPreview] = useState<RecentItem | null>(null);
     const headingRef = useRef<HTMLHeadingElement>(null);
     const initial = useRef(true);
 
@@ -87,7 +90,8 @@ export function LatestArrivals() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: i * 0.05 }}
-                                className="group relative border-2 md:border-4 border-black bg-[#E0E0E0] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-shadow duration-300"
+                                onClick={() => setPreview(item)}
+                                className="group relative border-2 md:border-4 border-black bg-[#E0E0E0] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-shadow duration-300 cursor-pointer"
                             >
                                 <div className="aspect-[4/5] overflow-hidden bg-black">
                                     {item.type === 'image' ? (
@@ -141,6 +145,55 @@ export function LatestArrivals() {
                         >
                             Next
                         </button>
+                    </div>
+                )}
+
+                {preview && (
+                    <div
+                        className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-6"
+                        onClick={() => setPreview(null)}
+                    >
+                        <button
+                            onClick={() => setPreview(null)}
+                            className="absolute top-6 right-6 border-4 border-white p-3 bg-black text-white hover:bg-[#ff4800] hover:border-[#ff4800] transition-colors z-10"
+                        >
+                            <X size={32} />
+                        </button>
+
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="max-w-5xl max-h-[85vh] w-full"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {preview.type === "image" ? (
+                                <img
+                                    src={preview.url}
+                                    alt={preview.displayName || ''}
+                                    className="w-full h-auto max-h-[85vh] object-contain border-8 border-white shadow-[24px_24px_0px_0px_rgba(255,255,255,0.3)]"
+                                />
+                            ) : (
+                                <video
+                                    src={preview.url}
+                                    controls
+                                    autoPlay
+                                    className="w-full max-h-[85vh] border-8 border-white shadow-[24px_24px_0px_0px_rgba(255,255,255,0.3)]"
+                                />
+                            )}
+                            <div className="mt-4 flex items-center justify-center gap-6">
+                                <p className="font-mono text-sm text-white uppercase tracking-wider">
+                                    {preview.displayName}
+                                </p>
+                                {preview.price != null && preview.price > 0 && (
+                                    <span className="font-black text-lg text-[#ff4800]">
+                                        ₹{Number(preview.price).toFixed(2)}
+                                    </span>
+                                )}
+                                <span className="font-mono text-xs text-gray-400">
+                                    · {formatSize(preview.size)}
+                                </span>
+                            </div>
+                        </motion.div>
                     </div>
                 )}
             </div>

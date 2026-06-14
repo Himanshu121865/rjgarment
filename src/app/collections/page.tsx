@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 import {
   Season,
   RecentItem,
@@ -15,6 +16,7 @@ import {
 } from "@/components/collections/CollectionCard";
 import { CollectionDetail } from "@/components/collections/CollectionDetail";
 import { cn } from "@/lib/utils";
+import { formatSize } from "@/lib/format";
 
 type SeasonFilter = "All" | Season;
 
@@ -47,6 +49,7 @@ export default function CollectionsPage() {
   const [filter, setFilter] = useState<SeasonFilter>("All");
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const [archiveItems, setArchiveItems] = useState<RecentItem[]>([]);
+  const [preview, setPreview] = useState<RecentItem | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -169,7 +172,8 @@ export default function CollectionsPage() {
                           whileInView={{ opacity: 1, y: 0 }}
                           viewport={{ once: true }}
                           transition={{ delay: i * 0.03 }}
-                          className="group relative border-2 border-black bg-[#E0E0E0] overflow-hidden"
+                          onClick={() => setPreview(item)}
+                          className="group relative border-2 border-black bg-[#E0E0E0] overflow-hidden cursor-pointer"
                         >
                           <div className="aspect-[4/5] md:aspect-[3/4] overflow-hidden bg-black">
                             {item.type === "image" ? (
@@ -233,6 +237,55 @@ export default function CollectionsPage() {
           />
         )}
       </AnimatePresence>
+
+      {preview && (
+        <div
+          className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-6"
+          onClick={() => setPreview(null)}
+        >
+          <button
+            onClick={() => setPreview(null)}
+            className="absolute top-6 right-6 border-4 border-white p-3 bg-black text-white hover:bg-[#ff4800] hover:border-[#ff4800] transition-colors z-10"
+          >
+            <X size={32} />
+          </button>
+
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="max-w-5xl max-h-[85vh] w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {preview.type === "image" ? (
+              <img
+                src={preview.url}
+                alt={preview.displayName || ""}
+                className="w-full h-auto max-h-[85vh] object-contain border-8 border-white shadow-[24px_24px_0px_0px_rgba(255,255,255,0.3)]"
+              />
+            ) : (
+              <video
+                src={preview.url}
+                controls
+                autoPlay
+                className="w-full max-h-[85vh] border-8 border-white shadow-[24px_24px_0px_0px_rgba(255,255,255,0.3)]"
+              />
+            )}
+            <div className="mt-4 flex items-center justify-center gap-6">
+              <p className="font-mono text-sm text-white uppercase tracking-wider">
+                {preview.displayName}
+              </p>
+              {preview.price != null && preview.price > 0 && (
+                <span className="font-black text-lg text-[#ff4800]">
+                  ₹{Number(preview.price).toFixed(2)}
+                </span>
+              )}
+              <span className="font-mono text-xs text-gray-400">
+                · {formatSize(preview.size)}
+              </span>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

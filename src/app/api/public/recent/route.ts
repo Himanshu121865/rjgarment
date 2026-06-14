@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
                 name: key,
                 url: r.url,
                 type: r.type,
+                size: r.size,
                 createdAt,
                 age,
                 displayName: ctx.displayName ?? null,

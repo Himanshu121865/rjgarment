@@ -13,6 +13,7 @@ export function getSeason(dateStr: string): Season {
 export interface RecentItem {
     url: string;
     type: string;
+    size: number;
     displayName: string | null;
     price: number | null;
     createdAt: string;
