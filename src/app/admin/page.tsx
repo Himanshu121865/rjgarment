@@ -276,31 +276,27 @@ function MediaCard({
   const [saving, setSaving] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const saveMeta = useCallback(
-    async (
-      name: string,
-      field: "displayName" | "price" | "category",
-      value: string | number,
-    ) => {
-      setSaving(true);
-      try {
-        await fetch("/api/admin/media/meta", {
-          method: "PUT",
-          headers: {
-            "x-admin-password": password,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ filename: name, [field]: value }),
-        });
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setSaving(false);
-        onMetaChange(name, field, value);
-      }
-    },
-    [password, onMetaChange],
-  );
+    const saveMeta = useCallback(
+        async (
+            name: string,
+            field: "displayName" | "price" | "category",
+            value: string | number,
+        ) => {
+            setSaving(true);
+            const res = await fetch("/api/admin/media/meta", {
+                method: "PUT",
+                headers: {
+                    "x-admin-password": password,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ filename: name, [field]: value }),
+            });
+            if (!res.ok) console.error("Meta save failed", await res.text());
+            setSaving(false);
+            onMetaChange(name, field, value);
+        },
+        [password, onMetaChange],
+    );
 
   const handleNameChange = (val: string) => {
     setDisplayName(val);
@@ -840,7 +836,7 @@ export default function AdminPage() {
                 files={files}
                 password={token}
                 onDelete={fetchMedia}
-                onMetaChange={() => {}}
+                onMetaChange={fetchMedia}
                 selected={selected}
                 onToggleSelect={toggleSelect}
               />
