@@ -4,15 +4,18 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 
-const PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "rjgarment2024";
-
 export function AdminLogin({ onLogin }: { onLogin: (pwd: string) => void }) {
   const [input, setInput] = useState("");
   const [error, setError] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (input === PASSWORD) {
+    const res = await fetch("/api/admin/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: input }),
+    });
+    if (res.ok) {
       onLogin(input);
       sessionStorage.setItem("admin_token", input);
     } else {

@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, MessageCircle, Check, ScanFaceIcon } from "lucide-react";
+import {
+  Phone,
+  MessageCircle,
+  Check,
+  ScanFaceIcon,
+  CircleUserRound,
+} from "lucide-react";
 
 const contacts = [
   {
@@ -17,7 +23,7 @@ const contacts = [
     href: "https://wa.me/9953394515",
   },
   {
-    icon: ScanFaceIcon,
+    icon: CircleUserRound,
     label: "Facebook",
     value: "Rajesh Jha",
     href: "https://www.facebook.com/rajesh.jha.12979431",

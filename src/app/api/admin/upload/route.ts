@@ -1,55 +1,70 @@
 import { NextResponse } from "next/server";
-import { uploadToCloudinary, defaultDisplayName, FOLDER } from "@/lib/cloudinary";
+import {
+  uploadToCloudinary,
+  defaultDisplayName,
+  FOLDER,
+} from "@/lib/cloudinary";
 
-const ALLOWED_IMAGES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
+const ALLOWED_IMAGES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+];
 const ALLOWED_VIDEOS = ["video/mp4", "video/webm", "video/quicktime"];
 const ALLOWED = [...ALLOWED_IMAGES, ...ALLOWED_VIDEOS];
 const MAX_SIZE = 50 * 1024 * 1024;
 
 function checkAuth(request: Request): boolean {
-    const pwd = request.headers.get("x-admin-password");
-    return pwd === process.env.ADMIN_PASSWORD;
+  const pwd = request.headers.get("x-admin-password");
+  return pwd === process.env.ADMIN_PASSWORD;
 }
 
 export async function POST(request: Request) {
-    if (!checkAuth(request)) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!checkAuth(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const formData = await request.formData();
+    const files = formData.getAll("files") as File[];
+
+    if (!files.length) {
+      return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }
 
-    try {
-        const formData = await request.formData();
-        const files = formData.getAll("files") as File[];
+    const uploaded: {
+      name: string;
+      url: string;
+      type: string;
+      size: number;
+    }[] = [];
 
-        if (!files.length) {
-            return NextResponse.json({ error: "No files provided" }, { status: 400 });
-        }
+    for (const file of files) {
+      if (!ALLOWED.includes(file.type)) continue;
+      if (file.size > MAX_SIZE) continue;
 
-        const uploaded: { name: string; url: string; type: string; size: number }[] = [];
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const resource = await uploadToCloudinary(buffer, file.name, file.type, {
+        displayName: defaultDisplayName(file.name),
+        price: 0,
+        category: "",
+      });
+      const key = resource.public_id.replace(`${FOLDER}/`, "");
 
-        for (const file of files) {
-            if (!ALLOWED.includes(file.type)) continue;
-            if (file.size > MAX_SIZE) continue;
-
-            const buffer = Buffer.from(await file.arrayBuffer());
-            const resource = await uploadToCloudinary(buffer, file.name, file.type, {
-                displayName: defaultDisplayName(file.name),
-                price: 0,
-                category: "",
-            });
-            const key = resource.public_id.replace(`${FOLDER}/`, '');
-
-            uploaded.push({
-                name: key,
-                url: resource.url,
-                type: file.type,
-                size: file.size,
-            });
-        }
-
-        return NextResponse.json({ files: uploaded });
-    } catch (err) {
-        console.error("Upload error:", err);
-        const msg = err instanceof Error ? err.message : "Upload failed";
-        return NextResponse.json({ error: msg }, { status: 500 });
+      uploaded.push({
+        name: key,
+        url: resource.url,
+        type: file.type,
+        size: file.size,
+      });
     }
+
+    return NextResponse.json({ files: uploaded });
+  } catch (err) {
+    console.error("Upload error:", err);
+    const msg = err instanceof Error ? err.message : "Upload failed";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
