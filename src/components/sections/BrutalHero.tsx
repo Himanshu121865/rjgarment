@@ -61,7 +61,7 @@ export function BrutalHero({ title }: { title: string }) {
             minFlakeSize={1.5}
             pixelResolution={100}
             speed={0.8}
-            density={0.25}
+            density={0.07}
             direction={135}
             brightness={0.6}
             variant="square"
