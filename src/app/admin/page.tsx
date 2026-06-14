@@ -406,7 +406,7 @@ function MediaCard({
                 type="number"
                 step="0.01"
                 min="0"
-                className="w-20 font-mono text-sm font-bold bg-transparent border-0 outline-none text-black"
+                className="w-10 font-mono text-sm font-bold bg-transparent border-0 outline-none text-black"
               />
             </div>
             <div className="flex gap-1">
