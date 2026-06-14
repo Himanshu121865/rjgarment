@@ -53,7 +53,7 @@ export function NavBar() {
                             (!link.href.includes('#') && pathname === link.href)
                         );
                         const cls = `group flex items-center gap-1 font-bold uppercase text-sm tracking-widest pb-1 transition-colors border-b-2 ${isCurrentPage ? 'text-[#ff4800] border-[#ff4800]' : 'text-black border-transparent hover:text-[#ff4800] hover:border-[#ff4800]'}`;
-                        if (isCurrentPage) {
+                        if (link.href.includes('#') || isCurrentPage) {
                             const hash = link.href.split('#')[1];
                             return (
                                 <button key={link.label} onClick={() => {
@@ -115,7 +115,7 @@ export function NavBar() {
                                 (!link.href.includes('#') && pathname === link.href)
                             );
                             const cls = `flex items-center gap-3 font-black uppercase text-lg tracking-tighter transition-colors border-b-2 pb-2 ${isCurrentPage ? 'text-[#ff4800] border-[#ff4800]' : 'text-black border-black hover:text-[#ff4800]'}`;
-                            if (isCurrentPage) {
+                        if (link.href.includes('#') || isCurrentPage) {
                                 const hash = link.href.split('#')[1];
                                 return (
                                     <button key={link.label} onClick={() => {

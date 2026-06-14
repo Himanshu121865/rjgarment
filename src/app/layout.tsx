@@ -5,6 +5,9 @@ import { LayoutProvider } from "@/components/layout/LayoutProvider";
 export const metadata: Metadata = {
   title: "Rajesh Garments",
   description: "clothing store for man and kids",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
