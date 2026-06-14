@@ -44,7 +44,7 @@ export function BrutalStatement({ statement }: { statement: string }) {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="font-mono text-lg md:text-2xl font-bold uppercase tracking-[0.3em] text-[#ff4800] mt-10 text-center"
           >
-            RJ GARMENT · EST. 2022 · SANT NAGAR
+            RJ GARMENT · EST. 2020 · SANT NAGAR
           </motion.p>
         )}
       </div>

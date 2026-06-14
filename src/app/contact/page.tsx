@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, MessageCircle, Check, ScanFaceIcon, icons } from "lucide-react";
-import { label } from "framer-motion/client";
+import { Phone, MessageCircle, Check, ScanFaceIcon } from "lucide-react";
 
 const contacts = [
   {

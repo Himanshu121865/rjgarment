@@ -11,7 +11,7 @@ export function Marquee({ items = ["RAW POWER"], bg = "bg-white", color = "text-
                 style={{ animationDuration: `${duration}s` }}
             >
                 {Array.from({ length: 12 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-8 px-8">
+                    <div key={i} className="flex items-center gap-8">
                         {items.map((item, j) => (
                             <div key={j} className="flex items-center gap-8">
                                 <span className={cn("text-5xl md:text-7xl font-black uppercase italic tracking-tighter", color)}>

@@ -3,11 +3,6 @@
 import React, { useRef } from "react";
 import { motion, useMotionValue, useTransform, useAnimationFrame, MotionValue } from "framer-motion";
 
-interface MagneticHoverProps {
-    text?: string;
-    color?: string;
-}
-
 export const MagneticChar = ({
     char,
     mouseX,
@@ -51,33 +46,5 @@ export const MagneticChar = ({
         >
             {char}
         </motion.span>
-    );
-};
-
-export const MagneticHover = ({
-    text = "MAGNETIC",
-    color = "#ffffff",
-}: MagneticHoverProps) => {
-    const isTouch = useRef(false);
-
-    React.useEffect(() => {
-        isTouch.current = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-    }, []);
-
-    const mouseX = useMotionValue(-1000);
-    const mouseY = useMotionValue(-1000);
-
-    return (
-        <div
-            className="w-full min-h-screen flex items-center justify-center bg-zinc-950 overflow-hidden"
-            onMouseMove={(e) => { if (!isTouch.current) { mouseX.set(e.clientX); mouseY.set(e.clientY); } }}
-            onMouseLeave={() => { if (!isTouch.current) { mouseX.set(-1000); mouseY.set(-1000); } }}
-        >
-            <div className="flex gap-2 flex-wrap justify-center px-4">
-                {text.split("").map((char, i) => (
-                    <MagneticChar key={i} char={char} mouseX={mouseX} mouseY={mouseY} activeColor={color} />
-                ))}
-            </div>
-        </div>
     );
 };
