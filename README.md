@@ -2,9 +2,7 @@
 
 A brutalist clothing brand storefront for **Rajesh Garments**, a men's & kids' clothing store in Sant Nagar, Delhi. Built as a digital lookbook and catalog.
 
-**[Live Site](https://rjgarment.vercel.app)**
-
----
+## ![Project Logo](public/Uploads/homepage.png)
 
 ## ✨ Features
 
